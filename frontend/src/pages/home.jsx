@@ -9,6 +9,7 @@ const dummyExpenses = [
     amount: 3000,
     reimbursement: 3000,
     requester: "David William",
+    receipt: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
   },
   {
     id: "Exp234",
@@ -17,8 +18,10 @@ const dummyExpenses = [
     amount: 5345,
     reimbursement: 5345,
     requester: "Stella Williams",
+    receipt: "https://www.africau.edu/images/default/sample.pdf"
   },
 ];
+
 
 export default function Home() {
   const [expenses, setExpenses] = useState(dummyExpenses);
@@ -89,7 +92,15 @@ export default function Home() {
                     <td>${exp.amount.toLocaleString()}</td>
                     <td>${exp.reimbursement.toLocaleString()}</td>
                     <td>
-                      <button className="btn btn-outline-success btn-sm">📄</button>
+                      <a
+                        href={exp.receipt}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline-success btn-sm"
+                        >
+                        📄 View
+                      </a>
+
                     </td>
                     <td>{exp.requester}</td>
                     <td>
