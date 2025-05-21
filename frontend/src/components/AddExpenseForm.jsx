@@ -1,16 +1,15 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 export default function AddExpenseForm({ onAdd, onCancel }) {
   const [form, setForm] = useState({
-    id: "",
     date: "",
     category: "",
-    amount: "",
+    expense: "",
     reimbursement: "",
-    requester: "",
   });
 
-  const [file, setFile] = useState(null); // 👈 for invoice file
+  const [file, setFile] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,26 +17,43 @@ export default function AddExpenseForm({ onAdd, onCancel }) {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    console.log("📎 File selected:", e.target.files[0]?.name);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const requester = localStorage.getItem("name") || "Unknown";
+
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    formData.append("invoice", file); // 👈 include the file
+    formData.append("requester", requester);
+    if (file) formData.append("invoice", file);
 
     try {
-      const res = await fetch("http://localhost:5000/api/expenses", {
-        method: "POST",
-        body: formData,
+      const res = await axios.post("http://localhost:5000/api/expenses", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      const data = await res.json();
-      onAdd(data); // update UI with newly added expense
+      onAdd(res.data);
     } catch (err) {
-      alert("Error uploading expense.");
+      if (err.response) {
+        console.error("❌ Server responded with:", err.response.status, err.response.data);
+
+        const { message, errors } = err.response.data;
+
+        if (Array.isArray(errors)) {
+          alert(`🚫 ${message}:\n\n${errors.map((e) => `• ${e}`).join("\n")}`);
+        } else {
+          alert(`🚫 ${message || "Server error occurred"}`);
+        }
+      } else {
+        console.error("❌ Network or client error:", err.message);
+        alert("❌ Could not upload expense. Check network and console.");
+      }
     }
   };
 
@@ -46,47 +62,69 @@ export default function AddExpenseForm({ onAdd, onCancel }) {
       <h5>Add New Expense</h5>
       <form onSubmit={handleSubmit} className="row g-3" encType="multipart/form-data">
         <div className="col-md-3">
-          <input type="text" className="form-control" name="id" placeholder="Expense ID" onChange={handleChange} required />
+          <input
+            type="date"
+            className="form-control"
+            name="date"
+            onChange={handleChange}
+            required
+          />
         </div>
         <div className="col-md-3">
-          <input type="date" className="form-control" name="date" onChange={handleChange} required />
+          <input
+            type="text"
+            className="form-control"
+            name="category"
+            placeholder="Category"
+            onChange={handleChange}
+            required
+          />
         </div>
         <div className="col-md-3">
-          <input type="text" className="form-control" name="category" placeholder="Category" onChange={handleChange} required />
+          <input
+            type="number"
+            className="form-control"
+            name="expense"
+            placeholder="Expense"
+            onChange={handleChange}
+            required
+          />
         </div>
         <div className="col-md-3">
-          <input type="text" className="form-control" name="requester" placeholder="Requester" onChange={handleChange} required />
-        </div>
-        <div className="col-md-3">
-          <input type="number" className="form-control" name="amount" placeholder="Expense" onChange={handleChange} required />
-        </div>
-        <div className="col-md-3">
-          <input type="number" className="form-control" name="reimbursement" placeholder="Reimbursement" onChange={handleChange} required />
+          <input
+            type="number"
+            className="form-control"
+            name="reimbursement"
+            placeholder="Reimbursement"
+            onChange={handleChange}
+            required
+          />
         </div>
         <div className="col-md-6">
-            <label className="form-label">Attach Invoice</label>
-            <div className="input-group">
-                <span className="input-group-text">
-                📎
-                </span>
-                <input
-                type="file"
-                className="form-control"
-                accept=".pdf,image/*"
-                onChange={handleFileChange}
-                required
-                />
-            </div>
-            {file && (
-                <small className="text-success mt-1 d-block">
-                Selected: {file.name}
-                </small>
-            )}
-            </div>
+          <label className="form-label">Attach Invoice (optional)</label>
+          <div className="input-group">
+            <span className="input-group-text">📎</span>
+            <input
+              type="file"
+              className="form-control"
+              accept=".pdf,image/*"
+              onChange={handleFileChange}
+            />
+          </div>
+          {file && (
+            <small className="text-success mt-1 d-block">
+              Selected: {file.name}
+            </small>
+          )}
+        </div>
 
         <div className="col-md-6 d-flex gap-2">
-          <button type="submit" className="btn btn-primary">Add Expense</button>
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button type="submit" className="btn btn-primary">
+            Add Expense
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
+            Cancel
+          </button>
         </div>
       </form>
     </div>

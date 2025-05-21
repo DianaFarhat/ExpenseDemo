@@ -2,56 +2,64 @@ const Expense= require("../models/expenseSchema");
 
 exports.createExpense = async (req, res) => {
   try {
+    // Parse values from the form (all come as strings from FormData)
     const {
       date,
       category,
       expense,
       reimbursement,
-      receipt,
-      actions,
-      requester // 🔹 This comes from localStorage (frontend sends it)
+      requester,
     } = req.body;
 
-    // Simple validation
+    // Optional file
+    const receipt = req.file?.path || "";
+
     const errors = [];
 
+    // Validate each field
     if (!date) errors.push("Date is required.");
     if (!category) errors.push("Category is required.");
-    if (!Number.isFinite(expense)) errors.push("Expense must be a number.");
-    if (!requester) errors.push("Requester (from localStorage) is required.");
-    if (!["approved", "rejected", "pending"].includes(actions)) {
-      errors.push("Actions must be one of: approved, rejected, pending.");
-    }
+
+    const parsedExpense = Number(expense);
+    const parsedReimbursement = Number(reimbursement);
+
+    if (!expense || isNaN(parsedExpense)) errors.push("Expense must be a number.");
+    if (!reimbursement || isNaN(parsedReimbursement)) errors.push("Reimbursement must be a number.");
+    if (!requester || requester === "Unknown") errors.push("Requester is required.");
 
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Validation Error", errors });
+      return res.status(400).json({
+        message: "Validation Error",
+        errors,
+      });
     }
 
-    // Create the expense
+    // Create new expense document
     const newExpense = new Expense({
       date,
       category,
-      expense,
-      reimbursement: reimbursement || false,
-      receipt,
+      expense: parsedExpense,
+      reimbursement: parsedReimbursement,
       requester,
-      actions: actions || "pending",
+      receipt,
+      actions: "pending",
     });
 
     const savedExpense = await newExpense.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Expense created successfully!",
       expense: savedExpense,
     });
   } catch (error) {
-    console.error("Error creating expense:", error.message);
-    res.status(500).json({
-      message: "An unexpected error occurred while creating the expense.",
+    console.error("❌ Error creating expense:", error);
+    return res.status(500).json({
+      message: "Server Error",
       error: error.message,
     });
   }
 };
+
 
 
 exports.getExpensesByStatus = async (req, res) => {
