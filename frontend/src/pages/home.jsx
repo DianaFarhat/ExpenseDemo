@@ -22,6 +22,7 @@ export default function Home() {
         const response = await axios.get(
           `http://localhost:5000/api/expenses/getExpenses?status=${activeTab}&page=${page}&limit=10`
         );
+        onAdd(res.data); // <-- this sends the whole response object
         const data = response.data.expenses || [];
         setExpenses(data);
         setTotalPages(response.data.totalPages || 1);
@@ -69,14 +70,12 @@ export default function Home() {
     }
   };
 
- const handleAddExpense = (newExpense) => {
-  // If _id is missing, create a temporary fallback key
-  if (!newExpense._id) {
-    newExpense._id = `temp-${Date.now()}`;
-  }
-  setExpenses((prev) => [newExpense, ...prev]);
-  setShowForm(false);
-};
+    const handleAddExpense = (resData) => {
+    const realExpense = resData.expense; // get the actual saved expense from backend
+    setExpenses((prev) => [realExpense, ...prev]);
+    setShowForm(false);
+  };
+
 
 
   const [loading, setLoading] = useState(true);
