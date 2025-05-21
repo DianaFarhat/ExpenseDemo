@@ -26,7 +26,7 @@ const expenseSchema = new mongoose.Schema({
   },
   actions: {
     type: String,
-    enum: ["accepted", "rejected", "pending"],
+    enum: ["approved", "rejected", "pending"],
     default: "pending",
   }
 }, { timestamps: true });

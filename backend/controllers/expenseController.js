@@ -19,8 +19,8 @@ exports.createExpense = async (req, res) => {
     if (!category) errors.push("Category is required.");
     if (!Number.isFinite(expense)) errors.push("Expense must be a number.");
     if (!requester) errors.push("Requester (from localStorage) is required.");
-    if (!["accepted", "rejected", "pending"].includes(actions)) {
-      errors.push("Actions must be one of: accepted, rejected, pending.");
+    if (!["approved", "rejected", "pending"].includes(actions)) {
+      errors.push("Actions must be one of: approved, rejected, pending.");
     }
 
     if (errors.length > 0) {
@@ -85,3 +85,16 @@ exports.getExpensesByStatus = async (req, res) => {
   }
 };
 
+exports.updateExpenseStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { actions } = req.body;
+
+    const updated = await Expense.findByIdAndUpdate(id, { actions }, { new: true });
+    if (!updated) return res.status(404).json({ message: "Expense not found" });
+
+    res.status(200).json({ message: "Status updated", expense: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};

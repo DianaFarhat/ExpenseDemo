@@ -7,48 +7,88 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("pending");
   const username = localStorage.getItem("username") || "";
   const isAdmin = username.toLowerCase().includes("admin");
-
-  const [expenses, setExpenses] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  const handleApprove = (id) => {
-    alert(`✅ Approved: ${id}`);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+
+  const [expenses, setExpenses] = useState([]);
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `http://localhost:5000/api/expenses/getExpenses?status=${activeTab}&page=${page}&limit=10`
+        );
+        const data = response.data.expenses || [];
+        setExpenses(data);
+        setTotalPages(response.data.totalPages || 1);
+        console.log("Fetched expenses for:", activeTab, "Page:", page);
+        console.log(data);
+      } catch (err) {
+        console.error("Failed to fetch expenses:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExpenses();
+  }, [activeTab, page]);
+
+
+useEffect(() => {
+  setPage(1);
+}, [activeTab]); // ✅ only reset page when the tab changes
+
+
+  const handleApprove = async (id) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/expenses/updateStatus/${id}`, {
+        actions: "approved",
+      });
+      setExpenses((prev) =>
+        prev.filter((exp) => exp._id !== id) // remove it from the pending list
+      );
+    } catch (err) {
+      console.error("Failed to approve:", err.message);
+    }
   };
 
-  const handleReject = (id) => {
-    alert(`❌ Rejected: ${id}`);
+  const handleReject = async (id) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/expenses/updateStatus/${id}`, {
+        actions: "rejected",
+      });
+      setExpenses((prev) =>
+        prev.filter((exp) => exp._id !== id)
+      );
+    } catch (err) {
+      console.error("Failed to reject:", err.message);
+    }
   };
+
+  
+
+ 
 
   const handleAddExpense = (newExpense) => {
     setExpenses((prev) => [newExpense, ...prev]);
     setShowForm(false);
   };
 
-  useEffect(() => {
-  const fetchExpenses = async () => {
-    try {
-      const response = await axios.get(`/api/expenses?status=${activeTab}`);
-      setExpenses(response.data.expenses || []);
-    } catch (err) {
-      console.error("Failed to fetch expenses:", err.message);
-    }
-  };
-
-  fetchExpenses();
-}, [activeTab]);
-
+  const [loading, setLoading] = useState(true);
 
   return (
+    <>
+     {loading && (
+      <p className="text-center text-secondary mt-3">Loading expenses...</p>
+    )}
     <div className="bg-light min-vh-100 py-4">
       <div className="container">
         {/* Top Nav */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold">Expense Management System</h4>
-         {/*  <nav className="nav nav-pills">
-            <a className="nav-link active" href="#">Pending Expenses</a>
-            <a className="nav-link" href="#">Approved Expenses</a>
-            <a className="nav-link" href="#">Rejected Expenses</a>
-          </nav> */}
           <nav className="nav nav-pills">
             <button className={`nav-link ${activeTab === "pending" ? "active" : ""}`} onClick={() => setActiveTab("pending")}>
               Pending Expenses
@@ -93,11 +133,11 @@ export default function Home() {
               </thead>
               <tbody>
                 {expenses.map((exp) => (
-                  <tr key={exp.id}>
-                    <td>{exp.id}</td>
-                    <td>{exp.date}</td>
+                  <tr key={exp._id}>
+                    <td>{exp._id}</td>
+                    <td>{new Date(exp.date).toISOString().split("T")[0]}</td>
                     <td>{exp.category}</td>
-                    <td>${exp.amount.toLocaleString()}</td>
+                    <td>${exp.expense.toLocaleString()}</td>
                     <td>${exp.reimbursement.toLocaleString()}</td>
                     <td>
                       <a
@@ -115,13 +155,13 @@ export default function Home() {
                       <td>
                         <button
                           className="btn btn-success btn-sm me-2"
-                          onClick={() => handleApprove(exp.id)}
+                          onClick={() => handleApprove(exp._id)}
                         >
                           ✅
                         </button>
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => handleReject(exp.id)}
+                          onClick={() => handleReject(exp._id)}
                         >
                           ❌
                         </button>
@@ -131,9 +171,31 @@ export default function Home() {
                 ))}
               </tbody>
             </table>
+            {/* Pagination Buttons */}
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+              >
+                ⬅️ Previous
+              </button>
+
+              <span className="fw-bold">Page {page} of {totalPages}</span>
+
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+              >
+                Next ➡️
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 }
