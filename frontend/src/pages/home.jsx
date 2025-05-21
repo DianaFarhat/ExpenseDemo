@@ -1,27 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AddExpenseForm from "../components/AddExpenseForm.jsx"; 
-
-const dummyExpenses = [
-  {
-    id: "Exp123",
-    date: "2023-03-17",
-    category: "Food",
-    amount: 3000,
-    reimbursement: 3000,
-    requester: "David William",
-    receipt: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-  },
-  {
-    id: "Exp234",
-    date: "2023-04-18",
-    category: "Travel",
-    amount: 5345,
-    reimbursement: 5345,
-    requester: "Stella Williams",
-    receipt: "https://www.africau.edu/images/default/sample.pdf"
-  },
-];
-
+import axios from "axios";
 
 export default function Home() {
   //Active Tab & User
@@ -29,7 +8,7 @@ export default function Home() {
   const username = localStorage.getItem("username") || "";
   const isAdmin = username.toLowerCase().includes("admin");
 
-  const [expenses, setExpenses] = useState(dummyExpenses);
+  const [expenses, setExpenses] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   const handleApprove = (id) => {
@@ -44,6 +23,20 @@ export default function Home() {
     setExpenses((prev) => [newExpense, ...prev]);
     setShowForm(false);
   };
+
+  useEffect(() => {
+  const fetchExpenses = async () => {
+    try {
+      const response = await axios.get(`/api/expenses?status=${activeTab}`);
+      setExpenses(response.data.expenses || []);
+    } catch (err) {
+      console.error("Failed to fetch expenses:", err.message);
+    }
+  };
+
+  fetchExpenses();
+}, [activeTab]);
+
 
   return (
     <div className="bg-light min-vh-100 py-4">
