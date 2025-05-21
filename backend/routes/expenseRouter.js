@@ -3,7 +3,7 @@ const { createExpense, getExpensesByStatus, updateExpenseStatus } = require('../
 const router=express.Router();
 
 // Routes
-router.post('/createExpense', createExpense)
+router.post('/', createExpense); // ✅ cleaner and conventional
 router.get('/getExpenses', getExpensesByStatus)
 router.patch("/updateStatus/:id", updateExpenseStatus);
 

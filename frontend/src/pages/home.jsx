@@ -6,6 +6,7 @@ export default function Home() {
   //Active Tab & User
   const [activeTab, setActiveTab] = useState("pending");
   const username = localStorage.getItem("username") || "";
+  const name= localStorage.getItem("name") || "User";
   const isAdmin = username.toLowerCase().includes("admin");
   const [showForm, setShowForm] = useState(false);
 
@@ -37,9 +38,9 @@ export default function Home() {
   }, [activeTab, page]);
 
 
-useEffect(() => {
-  setPage(1);
-}, [activeTab]); // ✅ only reset page when the tab changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]); // ✅ only reset page when the tab changes
 
 
   const handleApprove = async (id) => {
@@ -104,7 +105,7 @@ useEffect(() => {
 
         {/* Header with Add Button */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5>My Expenses</h5>
+          <h5>Hello, {name}</h5>
           <button className="btn btn-primary" onClick={() => setShowForm(true)}>
             ➕ New Expense
           </button>

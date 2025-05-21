@@ -87,7 +87,7 @@ const Login = () => {
         )}
 
         <button className="btn btn-primary w-100" onClick={handleLogin}>
-          Login
+          Enter
         </button>
       </div>
     </div>
