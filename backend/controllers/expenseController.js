@@ -1,4 +1,5 @@
 const Expense= require("../models/expenseSchema");
+const upload = require("../middleware/multer");
 
 exports.createExpense = async (req, res) => {
   try {
@@ -12,7 +13,8 @@ exports.createExpense = async (req, res) => {
     } = req.body;
 
     // Optional file
-    const receipt = req.file?.path || "";
+    const invoiceUrl = req.file ? req.file.path : null;
+
 
     const errors = [];
 
@@ -41,7 +43,7 @@ exports.createExpense = async (req, res) => {
       expense: parsedExpense,
       reimbursement: parsedReimbursement,
       requester,
-      receipt,
+      receipt: invoiceUrl,
       actions: "pending",
     });
 
