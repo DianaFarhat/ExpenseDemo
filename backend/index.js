@@ -3,7 +3,7 @@ const express= require('express');
 const { connectToDatabase } = require('./database');
 const app= express();
 const DB= require('./database').connectToDatabase;
-
+const expenseRouter=require("./routes/expenseRouter"); 
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
 
@@ -32,7 +32,7 @@ app.use(cors({
 app.options('*', cors());
 
 // Routes
-
+app.use("/api/expenses", expenseRouter)
 
 
 app.get("/", (req, res) => {
