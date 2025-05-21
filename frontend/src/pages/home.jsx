@@ -24,6 +24,11 @@ const dummyExpenses = [
 
 
 export default function Home() {
+  //Active Tab & User
+  const [activeTab, setActiveTab] = useState("pending");
+  const username = localStorage.getItem("username") || "";
+  const isAdmin = username.toLowerCase().includes("admin");
+
   const [expenses, setExpenses] = useState(dummyExpenses);
   const [showForm, setShowForm] = useState(false);
 
@@ -46,11 +51,21 @@ export default function Home() {
         {/* Top Nav */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold">Expense Management System</h4>
+         {/*  <nav className="nav nav-pills">
+            <a className="nav-link active" href="#">Pending Expenses</a>
+            <a className="nav-link" href="#">Approved Expenses</a>
+            <a className="nav-link" href="#">Rejected Expenses</a>
+          </nav> */}
           <nav className="nav nav-pills">
-            <a className="nav-link" href="#">Dashboard</a>
-            <a className="nav-link active" href="#">Expenses</a>
-            <a className="nav-link" href="#">Advances</a>
-            <a className="nav-link" href="#">Travel Booking</a>
+            <button className={`nav-link ${activeTab === "pending" ? "active" : ""}`} onClick={() => setActiveTab("pending")}>
+              Pending Expenses
+            </button>
+            <button className={`nav-link ${activeTab === "approved" ? "active" : ""}`} onClick={() => setActiveTab("approved")}>
+              Approved Expenses
+            </button>
+            <button className={`nav-link ${activeTab === "rejected" ? "active" : ""}`} onClick={() => setActiveTab("rejected")}>
+              Rejected Expenses
+            </button>
           </nav>
         </div>
 
@@ -80,7 +95,7 @@ export default function Home() {
                   <th>Reimbursement</th>
                   <th>Receipt</th>
                   <th>Requester</th>
-                  <th>Actions</th>
+                  {activeTab === "pending" && isAdmin && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -103,20 +118,22 @@ export default function Home() {
 
                     </td>
                     <td>{exp.requester}</td>
-                    <td>
-                      <button
-                        className="btn btn-success btn-sm me-2"
-                        onClick={() => handleApprove(exp.id)}
-                      >
-                        ✅
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleReject(exp.id)}
-                      >
-                        ❌
-                      </button>
-                    </td>
+                    {activeTab === "pending" && isAdmin && (
+                      <td>
+                        <button
+                          className="btn btn-success btn-sm me-2"
+                          onClick={() => handleApprove(exp.id)}
+                        >
+                          ✅
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleReject(exp.id)}
+                        >
+                          ❌
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
