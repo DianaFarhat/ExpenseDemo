@@ -23,20 +23,17 @@ export default function AddExpenseForm({ onAdd, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requester = localStorage.getItem("name") || "Unknown";
+    const requester = localStorage.getItem("name") || "Didi";
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       formData.append(key, value);
     });
     formData.append("requester", requester);
-    if (file) formData.append("invoice", file);
+    //if (file) formData.append("invoice", file);
 
     try {
       const res = await axios.post("http://localhost:5000/api/expenses", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
       onAdd(res.data);
     } catch (err) {

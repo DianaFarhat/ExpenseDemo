@@ -69,16 +69,20 @@ export default function Home() {
     }
   };
 
-  
+ const handleAddExpense = (newExpense) => {
+  // If _id is missing, create a temporary fallback key
+  if (!newExpense._id) {
+    newExpense._id = `temp-${Date.now()}`;
+  }
+  setExpenses((prev) => [newExpense, ...prev]);
+  setShowForm(false);
+};
 
- 
-
-  const handleAddExpense = (newExpense) => {
-    setExpenses((prev) => [newExpense, ...prev]);
-    setShowForm(false);
-  };
 
   const [loading, setLoading] = useState(true);
+
+
+
 
   return (
     <>
@@ -133,44 +137,61 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((exp) => (
-                  <tr key={exp._id}>
-                    <td>{exp._id}</td>
-                    <td>{new Date(exp.date).toISOString().split("T")[0]}</td>
-                    <td>{exp.category}</td>
-                    <td>${exp.expense.toLocaleString()}</td>
-                    <td>${exp.reimbursement.toLocaleString()}</td>
-                    <td>
-                      <a
-                        href={exp.receipt}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-outline-success btn-sm"
-                        >
-                        📄 View
-                      </a>
+                {expenses.map((exp) => {
+                  const date = new Date(exp.date);
+                  const displayDate = !isNaN(date) ? date.toISOString().split("T")[0] : "Invalid date";
 
-                    </td>
-                    <td>{exp.requester}</td>
-                    {activeTab === "pending" && isAdmin && (
+                  return (
+                    <tr key={exp._id}>
+                      <td>{exp._id}</td>
+                      <td>{displayDate}</td>
+                      <td>{exp.category || "N/A"}</td>
+                      <td>{typeof exp.expense === "number" ? `$${exp.expense.toLocaleString()}` : "N/A"}</td>
+                      <td>{typeof exp.reimbursement === "number" ? `$${exp.reimbursement.toLocaleString()}` : "N/A"}</td>
                       <td>
-                        <button
-                          className="btn btn-success btn-sm me-2"
-                          onClick={() => handleApprove(exp._id)}
-                        >
-                          ✅
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleReject(exp._id)}
-                        >
-                          ❌
-                        </button>
+                        {exp.receipt ? (
+                          <a
+                            href={exp.receipt}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline-success btn-sm"
+                          >
+                            📄 View
+                          </a>
+                        ) : (
+                          <span className="text-muted">No file</span>
+                        )}
                       </td>
-                    )}
-                  </tr>
-                ))}
+                      <td>{exp.requester || "Unknown"}</td>
+                      <td>
+                        {activeTab === "pending" && isAdmin ? (
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-success btn-sm"
+                              onClick={() => handleApprove(exp._id)}
+                            >
+                              ✅
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleReject(exp._id)}
+                            >
+                              ❌
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+
+                    
+ 
+                    </tr>
+                  );
+                })}
               </tbody>
+
+
             </table>
             {/* Pagination Buttons */}
             <div className="d-flex justify-content-between align-items-center mt-3">
