@@ -54,34 +54,34 @@ exports.createExpense = async (req, res) => {
 };
 
 
-exports.getPendingExpenses = async (req, res) => {
+exports.getExpensesByStatus = async (req, res) => {
   try {
-    // Default values if query params are missing
-    const page = parseInt(req.query.page) || 1; // page number
-    const limit = parseInt(req.query.limit) || 10; // items per page
+    const status = req.query.status || "pending"; // default to 'pending'
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Query for pending expenses
     const [expenses, total] = await Promise.all([
-      Expense.find({ actions: "pending" })
-        .sort({ createdAt: -1 }) // optional: newest first
+      Expense.find({ actions: status })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
-      Expense.countDocuments({ actions: "pending" }),
+      Expense.countDocuments({ actions: status }),
     ]);
 
     res.status(200).json({
-      message: "Pending expenses fetched successfully.",
+      message: `${status.charAt(0).toUpperCase() + status.slice(1)} expenses fetched successfully.`,
       page,
       totalPages: Math.ceil(total / limit),
-      totalPending: total,
+      total: total,
       expenses,
     });
   } catch (error) {
-    console.error("Error fetching pending expenses:", error.message);
+    console.error("Error fetching expenses:", error.message);
     res.status(500).json({
       message: "An unexpected error occurred while fetching expenses.",
       error: error.message,
     });
   }
 };
+
