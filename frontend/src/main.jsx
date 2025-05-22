@@ -12,7 +12,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        index: true,     // default route ("/") -> Login
+        index: true,     // default child of route ("/") -> Login
         element: <Login />,
       },
       {
