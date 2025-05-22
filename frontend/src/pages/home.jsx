@@ -22,7 +22,6 @@ export default function Home() {
         const response = await axios.get(
           `http://localhost:5000/api/expenses/getExpenses?status=${activeTab}&page=${page}&limit=10`
         );
-        onAdd(res.data); // <-- this sends the whole response object
         const data = response.data.expenses || [];
         setExpenses(data);
         setTotalPages(response.data.totalPages || 1);
