@@ -4,17 +4,20 @@ import axios from "axios";
 
 export default function Home() {
   //Active Tab & User
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("pending");
+  
   const username = localStorage.getItem("username") || "";
   const name= localStorage.getItem("name") || "User";
   const isAdmin = username.toLowerCase().includes("admin");
+  
   const [showForm, setShowForm] = useState(false);
-
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
 
   const [expenses, setExpenses] = useState([]);
+  
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
@@ -77,8 +80,7 @@ export default function Home() {
 
 
 
-  const [loading, setLoading] = useState(true);
-
+  
 
 
 
